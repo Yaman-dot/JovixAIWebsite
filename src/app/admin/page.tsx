@@ -1,197 +1,339 @@
 "use client"
 
-import { useState, useEffect, type ReactNode } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
-import {
-  LayoutDashboard,
-  BarChart,
-  FileText,
-  Briefcase,
-  Settings,
-  Package,
-  Users,
-  LogOut,
-  Menu,
-  X,
-  ShieldAlert,
-} from "lucide-react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Separator } from "@/components/ui/separator"
-import { cn } from "@/lib/utils"
-import { logoutAction } from "@/lib/actions/auth-actions"
+import {
+  LineChart,
+  Users,
+  FileText,
+  Package,
+  Briefcase,
+  ArrowUpRight,
+  ArrowDownRight,
+  Plus,
+  Loader2,
+} from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { initDatabaseAction, fetchStats } from "@/lib/actions/admin-actions"
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [currentUser, setCurrentUser] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const pathname = usePathname()
-  const router = useRouter()
+export default function AdminDashboard() {
+  const [stats, setStats] = useState({
+    users: { count: 0, loading: true },
+    blogPosts: { count: 0, loading: true },
+    services: { count: 0, loading: true },
+    portfolioItems: { count: 0, loading: true },
+    dbInitialized: false,
+    initializing: false,
+  })
   const { toast } = useToast()
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const loadStats = async () => {
       try {
-        const response = await fetch("/api/auth/check")
-        const data = await response.json()
+        // Fetch counts from database using server action
+        const result = await fetchStats()
 
-        if (!data.authenticated) {
-          router.push("/auth")
-          return
+        if (result.success) {
+          setStats((prev) => ({
+            ...prev,
+            users: {
+              count: result.data.users,
+              loading: false,
+            },
+            blogPosts: {
+              count: result.data.blogPosts,
+              loading: false,
+            },
+            services: {
+              count: result.data.services,
+              loading: false,
+            },
+            portfolioItems: {
+              count: result.data.portfolioItems,
+              loading: false,
+            },
+            dbInitialized: true,
+          }))
+        } else {
+          setStats((prev) => ({
+            ...prev,
+            users: { count: 0, loading: false },
+            blogPosts: { count: 0, loading: false },
+            services: { count: 0, loading: false },
+            portfolioItems: { count: 0, loading: false },
+            dbInitialized: false,
+          }))
         }
-
-        // Check if user is admin
-        if (data.user.role !== "admin") {
-          toast({
-            title: "Access Denied",
-            description: "You don't have permission to access the admin area",
-            variant: "destructive",
-          })
-          router.push("/")
-          return
-        }
-
-        setCurrentUser(data.user)
       } catch (error) {
-        console.error("Auth check error:", error)
-        router.push("/auth")
-      } finally {
-        setLoading(false)
+        console.error("Error loading stats:", error)
+        setStats((prev) => ({
+          ...prev,
+          users: { count: 0, loading: false },
+          blogPosts: { count: 0, loading: false },
+          services: { count: 0, loading: false },
+          portfolioItems: { count: 0, loading: false },
+          dbInitialized: false,
+        }))
       }
     }
 
-    checkAuth()
-  }, [router, toast])
+    loadStats()
+  }, [stats.dbInitialized])
 
-  const navItems = [
-    { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-    { name: "Analytics", href: "/admin/analytics", icon: BarChart },
-    { name: "Blog Posts", href: "/admin/blog", icon: FileText },
-    { name: "Services", href: "/admin/services", icon: Package },
-    { name: "Portfolio", href: "/admin/portfolio", icon: Briefcase },
-    { name: "Users", href: "/admin/users", icon: Users },
-    { name: "User Roles", href: "/admin/users/role", icon: ShieldAlert },
-    { name: "Settings", href: "/admin/settings", icon: Settings },
-  ]
-
-  const handleLogout = async () => {
+  const handleInitDatabase = async () => {
+    setStats((prev) => ({ ...prev, initializing: true }))
     try {
-      await logoutAction()
-      router.push("/auth")
+      const result = await initDatabaseAction()
+      if (result.success) {
+        setStats((prev) => ({ ...prev, dbInitialized: true, initializing: false }))
+        toast({
+          title: "Success",
+          description: "Database initialized successfully",
+        })
+      } else {
+        setStats((prev) => ({ ...prev, initializing: false }))
+        toast({
+          title: "Error",
+          description: result.error || "Failed to initialize database",
+          variant: "destructive",
+        })
+      }
     } catch (error) {
-      console.error("Logout error:", error)
+      console.error("Error initializing database:", error)
+      setStats((prev) => ({ ...prev, initializing: false }))
       toast({
         title: "Error",
-        description: "Failed to log out",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
         variant: "destructive",
       })
     }
   }
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    )
-  }
-
   return (
-    <div className="flex min-h-screen bg-muted/30">
-      {/* Mobile Sidebar Toggle */}
-      <div className="fixed top-4 left-4 z-50 md:hidden">
-        <Button variant="outline" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)} className="rounded-full">
-          {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </Button>
-      </div>
-
-      {/* Sidebar */}
-      <aside
-        className={cn(
-          "fixed inset-y-0 left-0 z-40 w-64 transform bg-background border-r transition-transform duration-200 ease-in-out md:translate-x-0",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full",
-        )}
-      >
-        <div className="p-6">
-          <Link href="/" className="flex items-center gap-2 font-bold text-xl">
-            <span>JovixAI</span>
-            <span className="text-xs bg-primary text-primary-foreground px-1.5 py-0.5 rounded">Admin</span>
-          </Link>
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <p className="text-muted-foreground">Welcome back, Admin User</p>
         </div>
-
-        <ScrollArea className="flex-1 px-4">
-          <nav className="space-y-1.5">
-            {navItems.slice(0, 2).map((item) => (
-              <Link key={item.href} href={item.href}>
-                <Button variant={pathname === item.href ? "secondary" : "ghost"} className="w-full justify-start">
-                  <item.icon className="mr-2 h-4 w-4" />
-                  {item.name}
-                </Button>
-              </Link>
-            ))}
-
-            <Separator className="my-4" />
-
-            <p className="text-xs font-semibold text-muted-foreground px-4 py-2">CONTENT MANAGEMENT</p>
-
-            {navItems.slice(2, 5).map((item) => (
-              <Link key={item.href} href={item.href}>
-                <Button
-                  variant={pathname === item.href || pathname.startsWith(`${item.href}/`) ? "secondary" : "ghost"}
-                  className="w-full justify-start"
-                >
-                  <item.icon className="mr-2 h-4 w-4" />
-                  {item.name}
-                </Button>
-              </Link>
-            ))}
-
-            <Separator className="my-4" />
-
-            {navItems.slice(5).map((item) => (
-              <Link key={item.href} href={item.href}>
-                <Button
-                  variant={pathname === item.href || pathname.startsWith(`${item.href}/`) ? "secondary" : "ghost"}
-                  className="w-full justify-start"
-                >
-                  <item.icon className="mr-2 h-4 w-4" />
-                  {item.name}
-                </Button>
-              </Link>
-            ))}
-          </nav>
-        </ScrollArea>
-
-        <div className="p-4 mt-auto border-t">
-          <div className="flex items-center gap-3 mb-4">
-            <Avatar>
-              <AvatarImage
-                src={currentUser?.profile_image || "/placeholder.svg?height=32&width=32"}
-                alt={currentUser?.name || "Admin User"}
-              />
-              <AvatarFallback>{currentUser?.name?.charAt(0) || "A"}</AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="text-sm font-medium">{currentUser?.name || "Admin User"}</p>
-              <p className="text-xs text-muted-foreground">{currentUser?.email || "admin@jovixai.com"}</p>
-            </div>
-          </div>
-          <Button variant="outline" className="w-full justify-start" onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Sign Out
+        <div className="flex gap-2">
+          {!stats.dbInitialized && (
+            <Button onClick={handleInitDatabase} disabled={stats.initializing}>
+              {stats.initializing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Initializing Database...
+                </>
+              ) : (
+                "Initialize Database"
+              )}
+            </Button>
+          )}
+          <Button asChild>
+            <Link href="/admin/blog/new">
+              <Plus className="mr-2 h-4 w-4" />
+              New Blog Post
+            </Link>
           </Button>
         </div>
-      </aside>
+      </div>
 
-      {/* Main Content */}
-      <main
-        className={cn("flex-1 transition-all duration-200 ease-in-out", sidebarOpen ? "md:ml-64" : "ml-0 md:ml-64")}
-      >
-        <div className="p-6 md:p-8">{children}</div>
-      </main>
+      {/* Stats Overview */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {stats.users.loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{stats.users.count}</div>
+                <p className="text-xs text-muted-foreground flex items-center mt-1">
+                  <span className="text-green-500 flex items-center mr-1">
+                    <ArrowUpRight className="h-3 w-3 mr-1" />
+                    12%
+                  </span>
+                  from last month
+                </p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Blog Posts</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {stats.blogPosts.loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{stats.blogPosts.count}</div>
+                <p className="text-xs text-muted-foreground flex items-center mt-1">
+                  <span className="text-green-500 flex items-center mr-1">
+                    <ArrowUpRight className="h-3 w-3 mr-1" />
+                    8%
+                  </span>
+                  from last month
+                </p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Services</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {stats.services.loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{stats.services.count}</div>
+                <p className="text-xs text-muted-foreground flex items-center mt-1">
+                  <span className="text-green-500 flex items-center mr-1">
+                    <ArrowUpRight className="h-3 w-3 mr-1" />
+                    4%
+                  </span>
+                  from last month
+                </p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Portfolio Items</CardTitle>
+            <Briefcase className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {stats.portfolioItems.loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{stats.portfolioItems.count}</div>
+                <p className="text-xs text-muted-foreground flex items-center mt-1">
+                  <span className="text-red-500 flex items-center mr-1">
+                    <ArrowDownRight className="h-3 w-3 mr-1" />
+                    2%
+                  </span>
+                  from last month
+                </p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Analytics Charts */}
+      <Tabs defaultValue="traffic">
+        <div className="flex justify-between items-center">
+          <TabsList>
+            <TabsTrigger value="traffic">Traffic</TabsTrigger>
+            <TabsTrigger value="engagement">Engagement</TabsTrigger>
+            <TabsTrigger value="conversion">Conversion</TabsTrigger>
+          </TabsList>
+          <Button variant="outline" size="sm">
+            Download Report
+          </Button>
+        </div>
+
+        <TabsContent value="traffic" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Website Traffic</CardTitle>
+              <CardDescription>Daily unique visitors over the last 30 days</CardDescription>
+            </CardHeader>
+            <CardContent className="pl-2">
+              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                <LineChart className="h-16 w-16" />
+                <span className="ml-4">Traffic visualization chart would appear here</span>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="engagement" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>User Engagement</CardTitle>
+              <CardDescription>User interaction metrics over time</CardDescription>
+            </CardHeader>
+            <CardContent className="pl-2">
+              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                <LineChart className="h-16 w-16" />
+                <span className="ml-4">Engagement visualization chart would appear here</span>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="conversion" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Conversion Rates</CardTitle>
+              <CardDescription>Visitor to customer conversion metrics</CardDescription>
+            </CardHeader>
+            <CardContent className="pl-2">
+              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                <LineChart className="h-16 w-16" />
+                <span className="ml-4">Conversion visualization chart would appear here</span>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Recent Activity */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Activity</CardTitle>
+          <CardDescription>Latest actions across the platform</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <div className="w-2 h-2 rounded-full bg-green-500"></div>
+              <div className="flex-1">
+                <p className="text-sm">New user registered</p>
+                <p className="text-xs text-muted-foreground">2 hours ago</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+              <div className="flex-1">
+                <p className="text-sm">Blog post "Advancements in Object Detection" published</p>
+                <p className="text-xs text-muted-foreground">5 hours ago</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+              <div className="flex-1">
+                <p className="text-sm">Service "Text-to-Speech Solutions" updated</p>
+                <p className="text-xs text-muted-foreground">Yesterday</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+              <div className="flex-1">
+                <p className="text-sm">New portfolio item "Retail Security System" added</p>
+                <p className="text-xs text-muted-foreground">2 days ago</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

@@ -60,8 +60,22 @@ export default function NewBlogPostPage() {
         data.append(key, value)
       })
 
-      // Add author ID (in a real app, this would be the current user's ID)
-      data.append("author_id", "1")
+      // Get current user ID
+      try {
+        const response = await fetch("/api/auth/check")
+        const userData = await response.json()
+
+        if (userData.authenticated && userData.user && userData.user.id) {
+          data.append("author_id", userData.user.id.toString())
+        } else {
+          // If we can't get the current user, we'll let the server handle it
+          data.append("author_id", "0")
+        }
+      } catch (error) {
+        console.error("Error getting current user:", error)
+        // If we can't get the current user, we'll let the server handle it
+        data.append("author_id", "0")
+      }
 
       const result = await createNewBlogPost(data)
 

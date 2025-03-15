@@ -127,3 +127,58 @@ INSERT INTO portfolio_items (title, description, full_description, client, image
 ('Audiobook Production Suite', 'Text-to-speech platform for publishers creating high-quality audiobooks.', 'A complete audiobook production platform that converts manuscripts into natural-sounding narration, reducing production costs and time-to-market for publishers.', 'Publishing House Consortium', '/placeholder.svg?height=400&width=600', '["Text-to-Speech", "Publishing", "Audio"]', 'text-to-speech', '["90% reduction in production costs", "8x faster time-to-market", "Expanded audiobook catalog by 300%"]'),
 ('Traffic Monitoring System', 'Real-time object detection for smart city traffic management.', 'An intelligent traffic monitoring system that uses object detection to analyze traffic patterns, detect incidents, and optimize signal timing for improved urban mobility.', 'Metropolitan Transportation Authority', '/placeholder.svg?height=400&width=600', '["Object Detection", "Smart City", "Real-time"]', 'object-detection', '["25% reduction in average commute times", "40% decrease in traffic congestion", "Faster emergency response coordination"]');
 
+-- Insert sample blog posts
+INSERT INTO blog_posts (title, slug, excerpt, content, author_id, category, image_url, status, published_at) 
+SELECT 
+    'Advancements in Object Detection Technology', 
+    'advancements-in-object-detection', 
+    'Exploring the latest breakthroughs in AI-powered object detection and their real-world applications.', 
+    'This is a sample blog post content about object detection technology.', 
+    id, 
+    'Technology', 
+    '/placeholder.svg?height=600&width=1200', 
+    'published', 
+    NOW()
+FROM users WHERE role = 'admin' LIMIT 1;
+
+INSERT INTO blog_posts (title, slug, excerpt, content, author_id, category, image_url, status, published_at) 
+SELECT 
+    'The Evolution of Text-to-Speech Models', 
+    'evolution-of-text-to-speech', 
+    'How modern TTS systems are revolutionizing accessibility and content consumption.', 
+    'This is a sample blog post content about text-to-speech technology.', 
+    id, 
+    'AI Research', 
+    '/placeholder.svg?height=600&width=1200', 
+    'published', 
+    NOW()
+FROM users WHERE role = 'admin' LIMIT 1;
+
+INSERT INTO blog_posts (title, slug, excerpt, content, author_id, category, image_url, status, published_at) 
+SELECT 
+    'Implementing AI in Enterprise Solutions', 
+    'implementing-ai-enterprise-solutions', 
+    'A guide to successfully integrating AI technologies into your business operations.', 
+    'This is a sample blog post content about AI in enterprise.', 
+    id, 
+    'Business', 
+    '/placeholder.svg?height=600&width=1200', 
+    'published', 
+    NOW()
+FROM users WHERE role = 'admin' LIMIT 1;
+
+-- Insert sample services
+INSERT INTO services (title, slug, description, icon, features, use_cases) VALUES
+('Object Detection Models', 'object-detection', 'Advanced AI models that can identify and track objects in images and video streams with high accuracy.', 'Eye', '["Real-time detection", "Multi-object tracking", "High accuracy"]', '["Retail security", "Traffic monitoring", "Manufacturing QA"]'),
+('Text-to-Speech Solutions', 'text-to-speech', 'Natural-sounding voice synthesis technology that converts written text into lifelike speech.', 'Mic', '["Natural voice", "Multiple languages", "Customizable voices"]', '["Audiobooks", "Accessibility", "Virtual assistants"]'),
+('Custom AI Integration', 'custom-integration', 'Tailored AI solutions integrated seamlessly into your existing systems and workflows.', 'Cpu', '["Seamless integration", "Custom development", "Scalable solutions"]', '["Enterprise systems", "Healthcare", "Financial services"]');
+
+-- Insert sample portfolio items
+INSERT INTO portfolio_items (title, description, full_description, client, image_url, tags, category, results) VALUES
+('Retail Security System', 'AI-powered object detection for retail security and inventory management.', 'A comprehensive security system for retail environments that uses object detection to identify suspicious behavior, prevent theft, and track inventory in real-time.', 'Major Retail Chain', '/placeholder.svg?height=400&width=600', '["Object Detection", "Retail", "Security"]', 'object-detection', '["30% reduction in inventory shrinkage", "Improved staff allocation efficiency", "Real-time alerts for security incidents"]'),
+('Audiobook Production Suite', 'Text-to-speech platform for publishers creating high-quality audiobooks.', 'A complete audiobook production platform that converts manuscripts into natural-sounding narration, reducing production costs and time-to-market for publishers.', 'Publishing House Consortium', '/placeholder.svg?height=400&width=600', '["Text-to-Speech", "Publishing", "Audio"]', 'text-to-speech', '["90% reduction in production costs", "8x faster time-to-market", "Expanded audiobook catalog by 300%"]'),
+('Traffic Monitoring System', 'Real-time object detection for smart city traffic management.', 'An intelligent traffic monitoring system that uses object detection to analyze traffic patterns, detect incidents, and optimize signal timing for improved urban mobility.', 'Metropolitan Transportation Authority', '/placeholder.svg?height=400&width=600', '["Object Detection", "Smart City", "Real-time"]', 'object-detection', '["25% reduction in average commute times", "40% decrease in traffic congestion", "Faster emergency response coordination"]');
+UPDATE users SET password = 'hashed_new_password' WHERE name = 'Admin User';
+DELETE FROM users;
+SELECT id, name, email, role, password FROM users WHERE email = 'admin@jovixai.com';
+SELECT * FROM portfolio_items;

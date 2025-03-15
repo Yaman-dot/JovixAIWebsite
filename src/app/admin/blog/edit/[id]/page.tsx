@@ -111,6 +111,25 @@ export default function EditBlogPostPage({ params }: { params: { id: string } })
         data.append(key, value)
       })
 
+      // Make sure we have a valid author_id
+      if (!formData.author_id || isNaN(Number(formData.author_id))) {
+        try {
+          const response = await fetch("/api/auth/check")
+          const userData = await response.json()
+
+          if (userData.authenticated && userData.user && userData.user.id) {
+            data.append("author_id", userData.user.id.toString())
+          } else {
+            // If we can't get the current user, we'll let the server handle it
+            data.append("author_id", "0")
+          }
+        } catch (error) {
+          console.error("Error getting current user:", error)
+          // If we can't get the current user, we'll let the server handle it
+          data.append("author_id", "0")
+        }
+      }
+
       const result = await updateExistingBlogPost(id, data)
 
       if (result.success) {

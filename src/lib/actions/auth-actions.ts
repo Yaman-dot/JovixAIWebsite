@@ -99,7 +99,7 @@ export async function registerAction(formData: FormData) {
     }
 
     // Set session cookie
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     cookieStore.set({
       name: "session_token",
       value: loginResult.session.token,
@@ -301,4 +301,3 @@ export async function requireAdmin() {
 
   return user
 }
-
