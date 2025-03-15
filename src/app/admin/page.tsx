@@ -5,7 +5,17 @@ import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
-import { LineChart, Users, FileText, Package, Briefcase, ArrowUpRight, ArrowDownRight, Plus, Loader2 } from 'lucide-react'
+import {
+  LineChart,
+  Users,
+  FileText,
+  Package,
+  Briefcase,
+  ArrowUpRight,
+  ArrowDownRight,
+  Plus,
+  Loader2,
+} from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { initDatabaseAction, fetchStats } from "@/lib/actions/admin-actions"
 
@@ -25,7 +35,7 @@ export default function AdminDashboard() {
       try {
         // Fetch counts from database using server action
         const result = await fetchStats()
-        
+
         if (result.success) {
           setStats((prev) => ({
             ...prev,
@@ -96,7 +106,7 @@ export default function AdminDashboard() {
       setStats((prev) => ({ ...prev, initializing: false }))
       toast({
         title: "Error",
-        description: "An unexpected error occurred",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
         variant: "destructive",
       })
     }
@@ -327,3 +337,4 @@ export default function AdminDashboard() {
     </div>
   )
 }
+

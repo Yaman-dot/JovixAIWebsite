@@ -5,11 +5,20 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Menu, X, Moon, Sun, Globe } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useTheme } from "next-themes"
 import { cn } from "@/lib/utils"
 import { useMobile } from "@/hooks/use-mobile"
 import { useTranslation } from "@/hooks/use-translation"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { User, ShieldCheck, LogOut } from "lucide-react"
+import { getCurrentUser, logoutAction } from "@/lib/actions/auth-actions"
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -17,6 +26,32 @@ export default function Header() {
   const { theme, setTheme } = useTheme()
   const isMobile = useMobile()
   const { language, setLanguage, t } = useTranslation()
+
+  // Add state and functions for user authentication
+  const [currentUser, setCurrentUser] = useState<any>(null)
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const user = await getCurrentUser()
+        setCurrentUser(user)
+      } catch (error) {
+        console.error("Auth check error:", error)
+      }
+    }
+
+    checkAuth()
+  }, [])
+
+  const handleLogout = async () => {
+    try {
+      await logoutAction()
+      setCurrentUser(null)
+      window.location.href = "/"
+    } catch (error) {
+      console.error("Logout error:", error)
+    }
+  }
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
   const closeMenu = () => setIsMenuOpen(false)
@@ -46,7 +81,7 @@ export default function Header() {
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center space-x-2">
-            <span className="text-2xl font-bold">{t("AI Vision")}</span>
+            <span className="text-2xl font-bold">{t("JovixAI")}</span>
           </Link>
         </div>
 
@@ -67,14 +102,59 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
-          {/* Sign In and Admin Buttons */}
+          {/* Sign In/Profile Buttons */}
           <div className="hidden md:flex items-center gap-2">
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/auth">{t("Sign In")}</Link>
-            </Button>
-            <Button variant="secondary" size="sm" asChild className="bg-amber-500 hover:bg-amber-600 text-white">
-              <Link href="/admin">{t("Admin")}</Link>
-            </Button>
+            {currentUser ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="flex items-center gap-2">
+                    <Avatar className="h-6 w-6">
+                      <AvatarImage
+                        src={currentUser.profile_image || "/placeholder.svg?height=24&width=24"}
+                        alt={currentUser.name}
+                      />
+                      <AvatarFallback>{currentUser.name?.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <span>{currentUser.name}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile">
+                      <User className="mr-2 h-4 w-4" />
+                      {t("My Profile")}
+                    </Link>
+                  </DropdownMenuItem>
+                  {currentUser.role === "admin" && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin">
+                        <ShieldCheck className="mr-2 h-4 w-4" />
+                        {t("Admin Panel")}
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    {t("Sign Out")}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/auth">{t("Sign In")}</Link>
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  asChild
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                  <Link href="/admin">{t("Admin")}</Link>
+                </Button>
+              </>
+            )}
           </div>
           {/* Language Switcher */}
           <DropdownMenu>
@@ -139,24 +219,70 @@ export default function Header() {
               </Link>
             ))}
             <div className="mt-4 flex flex-col gap-3">
-              <Link
-                href="/auth"
-                className="text-lg font-medium transition-colors hover:text-primary flex items-center justify-center"
-                onClick={closeMenu}
-              >
-                <Button variant="outline" className="w-full">
-                  {t("Sign In")}
-                </Button>
-              </Link>
-              <Link
-                href="/admin"
-                className="text-lg font-medium transition-colors hover:text-primary flex items-center justify-center"
-                onClick={closeMenu}
-              >
-                <Button variant="secondary" className="w-full bg-amber-500 hover:bg-amber-600 text-white">
-                  {t("Admin")}
-                </Button>
-              </Link>
+              {currentUser ? (
+                <>
+                  <Link
+                    href="/profile"
+                    className="text-lg font-medium transition-colors hover:text-primary flex items-center justify-center"
+                    onClick={closeMenu}
+                  >
+                    <Button variant="outline" className="w-full flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      {t("My Profile")}
+                    </Button>
+                  </Link>
+                  {currentUser.role === "admin" && (
+                    <Link
+                      href="/admin"
+                      className="text-lg font-medium transition-colors hover:text-primary flex items-center justify-center"
+                      onClick={closeMenu}
+                    >
+                      <Button
+                        variant="secondary"
+                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground flex items-center gap-2"
+                      >
+                        <ShieldCheck className="h-4 w-4" />
+                        {t("Admin Panel")}
+                      </Button>
+                    </Link>
+                  )}
+                  <Button
+                    variant="ghost"
+                    className="w-full flex items-center gap-2"
+                    onClick={() => {
+                      handleLogout()
+                      closeMenu()
+                    }}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    {t("Sign Out")}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/auth"
+                    className="text-lg font-medium transition-colors hover:text-primary flex items-center justify-center"
+                    onClick={closeMenu}
+                  >
+                    <Button variant="outline" className="w-full">
+                      {t("Sign In")}
+                    </Button>
+                  </Link>
+                  <Link
+                    href="/admin"
+                    className="text-lg font-medium transition-colors hover:text-primary flex items-center justify-center"
+                    onClick={closeMenu}
+                  >
+                    <Button
+                      variant="secondary"
+                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                    >
+                      {t("Admin Panel")}
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </nav>
         </div>

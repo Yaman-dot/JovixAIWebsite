@@ -84,7 +84,7 @@ export default function ChatBot() {
         model: openai("gpt-3.5-turbo"),
         prompt: prompt,
         system:
-          "You are a helpful AI assistant for AI Vision, a company specializing in object detection and text-to-speech AI solutions. Provide concise, helpful responses about our services, technology, and how we can help customers. Keep responses under 150 words.",
+          "You are a helpful AI assistant for JovixAI, a company specializing in object detection and text-to-speech AI solutions. Provide concise, helpful responses about our services, technology, and how we can help customers. Keep responses under 150 words.",
       })
 
       const assistantMessage: Message = {

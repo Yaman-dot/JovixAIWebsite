@@ -1,7 +1,15 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { getAllUsers, getUserById, createUser, updateUser, deleteUser, type User } from "../models/user"
+import {
+  getAllUsers,
+  getUserById,
+  createUser,
+  updateUser,
+  deleteUser,
+  getUserActivity,
+  type User,
+} from "../models/user"
 
 export async function fetchAllUsers() {
   try {
@@ -32,18 +40,21 @@ export async function createNewUser(formData: FormData) {
     const email = formData.get("email") as string
     const password = formData.get("password") as string
     const role = formData.get("role") as "admin" | "editor" | "user"
+    const profile_image = formData.get("profile_image") as string
+    const bio = formData.get("bio") as string
 
     // Validate required fields
     if (!name || !email || !password) {
       return { success: false, error: "Name, email, and password are required" }
     }
 
-    // In a real app, you would hash the password before storing it
     const user: User = {
       name,
       email,
       password,
       role: role || "user",
+      profile_image: profile_image || null,
+      bio: bio || null,
     }
 
     await createUser(user)
@@ -51,6 +62,12 @@ export async function createNewUser(formData: FormData) {
     return { success: true, message: "User created successfully" }
   } catch (error) {
     console.error("Error creating user:", error)
+
+    // Check for duplicate email error
+    if (error instanceof Error && error.message.includes("Duplicate entry")) {
+      return { success: false, error: "Email already exists" }
+    }
+
     return { success: false, error: "Failed to create user" }
   }
 }
@@ -61,6 +78,8 @@ export async function updateExistingUser(id: number, formData: FormData) {
     const email = formData.get("email") as string
     const password = formData.get("password") as string
     const role = formData.get("role") as "admin" | "editor" | "user"
+    const profile_image = formData.get("profile_image") as string
+    const bio = formData.get("bio") as string
 
     // Validate required fields
     if (!name || !email) {
@@ -72,6 +91,8 @@ export async function updateExistingUser(id: number, formData: FormData) {
       email,
       password: password || undefined,
       role: role || "user",
+      profile_image: profile_image || null,
+      bio: bio || null,
     }
 
     await updateUser(id, user)
@@ -79,6 +100,12 @@ export async function updateExistingUser(id: number, formData: FormData) {
     return { success: true, message: "User updated successfully" }
   } catch (error) {
     console.error("Error updating user:", error)
+
+    // Check for duplicate email error
+    if (error instanceof Error && error.message.includes("Duplicate entry")) {
+      return { success: false, error: "Email already exists" }
+    }
+
     return { success: false, error: "Failed to update user" }
   }
 }
@@ -91,6 +118,16 @@ export async function deleteUserById(id: number) {
   } catch (error) {
     console.error("Error deleting user:", error)
     return { success: false, error: "Failed to delete user" }
+  }
+}
+
+export async function fetchUserActivity(userId: number, limit = 50) {
+  try {
+    const result = await getUserActivity(userId, limit)
+    return result
+  } catch (error) {
+    console.error("Error fetching user activity:", error)
+    return { success: false, error: "Failed to fetch user activity" }
   }
 }
 

@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Search, MoreHorizontal, Pencil, Trash2, Loader2 } from "lucide-react"
+import { Plus, Search, MoreHorizontal, Pencil, Trash2, Loader2, User } from "lucide-react"
 import { fetchAllUsers, deleteUserById } from "@/lib/actions/user-actions"
 import { useToast } from "@/hooks/use-toast"
 
@@ -145,7 +146,7 @@ export default function UsersPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
+                    <TableHead>User</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Role</TableHead>
                     <TableHead>Created</TableHead>
@@ -155,7 +156,19 @@ export default function UsersPage() {
                 <TableBody>
                   {filteredUsers.map((user) => (
                     <TableRow key={user.id}>
-                      <TableCell className="font-medium">{user.name}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="relative w-8 h-8 rounded-full overflow-hidden">
+                            <Image
+                              src={user.profile_image || "/placeholder.svg?height=32&width=32"}
+                              alt={user.name}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                          <span className="font-medium">{user.name}</span>
+                        </div>
+                      </TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>
                         <Badge variant={getRoleBadgeVariant(user.role)}>{user.role || "user"}</Badge>
@@ -170,6 +183,12 @@ export default function UsersPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                              <Link href={`/admin/users/profile/${user.id}`}>
+                                <User className="mr-2 h-4 w-4" />
+                                View Profile
+                              </Link>
+                            </DropdownMenuItem>
                             <DropdownMenuItem asChild>
                               <Link href={`/admin/users/edit/${user.id}`}>
                                 <Pencil className="mr-2 h-4 w-4" />

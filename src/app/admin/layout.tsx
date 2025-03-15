@@ -1,18 +1,57 @@
 "use client"
 
-import { useState, type ReactNode } from "react"
+import { useState, useEffect, type ReactNode } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { LayoutDashboard, BarChart, FileText, Briefcase, Settings, Package, Users, LogOut, Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
+import { logoutAction, getCurrentUser } from "@/lib/actions/auth-actions"
+import { useToast } from "@/hooks/use-toast"
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [currentUser, setCurrentUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
   const pathname = usePathname()
+  const router = useRouter()
+  const { toast } = useToast()
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const user = await getCurrentUser()
+
+        if (!user) {
+          router.push("/auth")
+          return
+        }
+
+        // Check if user is admin
+        if (user.role !== "admin") {
+          toast({
+            title: "Access Denied",
+            description: "You don't have permission to access the admin area",
+            variant: "destructive",
+          })
+          router.push("/")
+          return
+        }
+
+        setCurrentUser(user)
+      } catch (error) {
+        console.error("Auth check error:", error)
+        router.push("/auth")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    checkAuth()
+  }, [router, toast])
 
   const navItems = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -23,6 +62,28 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     { name: "Users", href: "/admin/users", icon: Users },
     { name: "Settings", href: "/admin/settings", icon: Settings },
   ]
+
+  const handleLogout = async () => {
+    try {
+      await logoutAction()
+      router.push("/auth")
+    } catch (error) {
+      console.error("Logout error:", error)
+      toast({
+        title: "Error",
+        description: "Failed to log out",
+        variant: "destructive",
+      })
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen bg-muted/30">
@@ -42,7 +103,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       >
         <div className="p-6">
           <Link href="/" className="flex items-center gap-2 font-bold text-xl">
-            <span>AI Vision</span>
+            <span>JovixAI</span>
             <span className="text-xs bg-primary text-primary-foreground px-1.5 py-0.5 rounded">Admin</span>
           </Link>
         </div>
@@ -78,7 +139,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
             {navItems.slice(5).map((item) => (
               <Link key={item.href} href={item.href}>
-                <Button variant={pathname === item.href ? "secondary" : "ghost"} className="w-full justify-start">
+                <Button
+                  variant={pathname === item.href || pathname.startsWith(`${item.href}/`) ? "secondary" : "ghost"}
+                  className="w-full justify-start"
+                >
                   <item.icon className="mr-2 h-4 w-4" />
                   {item.name}
                 </Button>
@@ -90,19 +154,20 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <div className="p-4 mt-auto border-t">
           <div className="flex items-center gap-3 mb-4">
             <Avatar>
-              <AvatarImage src="/placeholder.svg?height=32&width=32" alt="Admin User" />
-              <AvatarFallback>AU</AvatarFallback>
+              <AvatarImage
+                src={currentUser?.profile_image || "/placeholder.svg?height=32&width=32"}
+                alt={currentUser?.name || "Admin User"}
+              />
+              <AvatarFallback>{currentUser?.name?.charAt(0) || "A"}</AvatarFallback>
             </Avatar>
             <div>
-              <p className="text-sm font-medium">Admin User</p>
-              <p className="text-xs text-muted-foreground">admin@aivision.com</p>
+              <p className="text-sm font-medium">{currentUser?.name || "Admin User"}</p>
+              <p className="text-xs text-muted-foreground">{currentUser?.email || "admin@jovixai.com"}</p>
             </div>
           </div>
-          <Button variant="outline" className="w-full justify-start" asChild>
-            <Link href="/auth">
-              <LogOut className="mr-2 h-4 w-4" />
-              Sign Out
-            </Link>
+          <Button variant="outline" className="w-full justify-start" onClick={handleLogout}>
+            <LogOut className="mr-2 h-4 w-4" />
+            Sign Out
           </Button>
         </div>
       </aside>

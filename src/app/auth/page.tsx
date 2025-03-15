@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -15,6 +15,7 @@ import { Separator } from "@/components/ui/separator"
 import { Github, Loader2 } from "lucide-react"
 import { useTranslation } from "@/hooks/use-translation"
 import { useToast } from "@/hooks/use-toast"
+import { loginAction, registerAction } from "@/lib/actions/auth-actions"
 
 export default function AuthPage() {
   const { t } = useTranslation()
@@ -40,19 +41,65 @@ export default function AuthPage() {
     agreeTerms: false,
   })
 
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch("/api/auth/check")
+        const data = await response.json()
+
+        if (data.authenticated) {
+          router.push("/")
+        }
+      } catch (error) {
+        console.error("Auth check error:", error)
+      }
+    }
+
+    checkAuth()
+  }, [router])
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
+    try {
+      // Get user agent for activity logging
+      const userAgent = navigator.userAgent
+
+      // Create form data
+      const formData = new FormData()
+      formData.append("email", signInData.email)
+      formData.append("password", signInData.password)
+      formData.append("rememberMe", signInData.rememberMe ? "on" : "off")
+      formData.append("userAgent", userAgent)
+
+      // Call server action
+      const result = await loginAction(formData)
+
+      if (result.success) {
+        toast({
+          title: t("Sign in successful"),
+          description: t("Welcome back to JovixAI!"),
+        })
+        router.push("/")
+      } else {
+        toast({
+          title: t("Sign in failed"),
+          description: result.error || t("Invalid credentials"),
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Sign in error:", error)
       toast({
-        title: t("Sign in successful"),
-        description: t("Welcome back to AI Vision!"),
+        title: t("Sign in failed"),
+        description: t("An unexpected error occurred"),
+        variant: "destructive",
       })
-      router.push("/")
-    }, 1500)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -79,15 +126,45 @@ export default function AuthPage() {
 
     setIsLoading(true)
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
+    try {
+      // Get user agent for activity logging
+      const userAgent = navigator.userAgent
+
+      // Create form data
+      const formData = new FormData()
+      formData.append("name", signUpData.name)
+      formData.append("email", signUpData.email)
+      formData.append("password", signUpData.password)
+      formData.append("confirmPassword", signUpData.confirmPassword)
+      formData.append("agreeTerms", signUpData.agreeTerms ? "on" : "off")
+      formData.append("userAgent", userAgent)
+
+      // Call server action
+      const result = await registerAction(formData)
+
+      if (result.success) {
+        toast({
+          title: t("Account created successfully"),
+          description: t("Welcome to JovixAI!"),
+        })
+        router.push("/")
+      } else {
+        toast({
+          title: t("Registration failed"),
+          description: result.error || t("Failed to create account"),
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error("Registration error:", error)
       toast({
-        title: t("Account created successfully"),
-        description: t("Welcome to AI Vision!"),
+        title: t("Registration failed"),
+        description: t("An unexpected error occurred"),
+        variant: "destructive",
       })
-      router.push("/")
-    }, 1500)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleGithubAuth = () => {
@@ -98,7 +175,7 @@ export default function AuthPage() {
       setIsLoading(false)
       toast({
         title: t("GitHub authentication successful"),
-        description: t("Welcome to AI Vision!"),
+        description: t("Welcome to JovixAI!"),
       })
       router.push("/")
     }, 1500)
@@ -245,7 +322,7 @@ export default function AuthPage() {
                       htmlFor="terms"
                       className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                     >
-                      {t("I agree to the")}
+                      {t("I agree to the")}{" "}
                       <Link href="/terms" className="text-primary hover:underline ml-1">
                         {t("terms and conditions")}
                       </Link>
