@@ -4,7 +4,7 @@ import React from "react"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Eye, Mic, Cpu, Zap, ArrowRight } from 'lucide-react'
+import { Eye, Mic, Cpu, Zap, ArrowRight } from "lucide-react"
 import { useTranslation } from "@/hooks/use-translation"
 
 export default function ServicesPage() {
@@ -166,3 +166,4 @@ export default function ServicesPage() {
     </div>
   )
 }
+

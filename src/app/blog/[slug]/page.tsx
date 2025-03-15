@@ -9,6 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, Calendar, Clock, Share2, Bookmark, Facebook, Twitter, Linkedin } from "lucide-react"
 import { useTranslation } from "@/hooks/use-translation"
 
+// Fix the React.use() warning for params
+import { use } from "react"
+
 interface BlogPostPageProps {
   params: {
     slug: string
@@ -17,7 +20,8 @@ interface BlogPostPageProps {
 
 export default function BlogPostPage({ params }: BlogPostPageProps) {
   const { t } = useTranslation()
-  const { slug } = params
+  const resolvedParams = use(params)
+  const { slug } = resolvedParams
 
   // Blog post data (in a real app, this would come from a database or CMS)
   const blogPosts = {

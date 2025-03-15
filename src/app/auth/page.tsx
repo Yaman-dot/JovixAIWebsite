@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -15,11 +15,12 @@ import { Separator } from "@/components/ui/separator"
 import { Github, Loader2 } from "lucide-react"
 import { useTranslation } from "@/hooks/use-translation"
 import { useToast } from "@/hooks/use-toast"
-import { loginAction, registerAction } from "@/lib/actions/auth-actions"
+import { loginAction, registerAction, githubAuthAction } from "@/lib/actions/auth-actions"
 
 export default function AuthPage() {
   const { t } = useTranslation()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { toast } = useToast()
 
   const [isLoading, setIsLoading] = useState(false)
@@ -40,6 +41,55 @@ export default function AuthPage() {
     confirmPassword: "",
     agreeTerms: false,
   })
+
+  // Handle GitHub OAuth callback
+  useEffect(() => {
+    const code = searchParams.get("code")
+    const error = searchParams.get("error")
+
+    if (error) {
+      toast({
+        title: t("GitHub Authentication Failed"),
+        description: searchParams.get("error_description") || t("An error occurred during GitHub authentication"),
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (code) {
+      const handleGitHubCallback = async () => {
+        setIsLoading(true)
+        try {
+          const result = await githubAuthAction(code)
+
+          if (result.success) {
+            toast({
+              title: t("GitHub Authentication Successful"),
+              description: t("Welcome to JovixAI!"),
+            })
+            router.push("/")
+          } else {
+            toast({
+              title: t("GitHub Authentication Failed"),
+              description: result.error || t("Failed to authenticate with GitHub"),
+              variant: "destructive",
+            })
+          }
+        } catch (error) {
+          console.error("GitHub callback error:", error)
+          toast({
+            title: t("Authentication Error"),
+            description: t("An unexpected error occurred"),
+            variant: "destructive",
+          })
+        } finally {
+          setIsLoading(false)
+        }
+      }
+
+      handleGitHubCallback()
+    }
+  }, [searchParams, toast, router, t])
 
   // Check if user is already logged in
   useEffect(() => {
@@ -170,15 +220,12 @@ export default function AuthPage() {
   const handleGithubAuth = () => {
     setIsLoading(true)
 
-    // Simulate OAuth redirect
-    setTimeout(() => {
-      setIsLoading(false)
-      toast({
-        title: t("GitHub authentication successful"),
-        description: t("Welcome to JovixAI!"),
-      })
-      router.push("/")
-    }, 1500)
+    // Redirect to GitHub OAuth
+    const clientId = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID
+    const redirectUri = `${window.location.origin}/auth`
+    const scope = "user:email"
+
+    window.location.href = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}`
   }
 
   return (

@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -12,6 +13,10 @@ import { useTranslation } from "@/hooks/use-translation"
 
 export default function BlogPage() {
   const { t } = useTranslation()
+  const [currentPage, setCurrentPage] = useState(1)
+  const [activeCategory, setActiveCategory] = useState("all")
+  const [searchTerm, setSearchTerm] = useState("")
+  const postsPerPage = 6
 
   const categories = [
     { id: "all", name: "All Posts" },
@@ -101,10 +106,71 @@ export default function BlogPage() {
       slug: "ethical-considerations-ai-development",
       readTime: "12 min read",
     },
+    {
+      id: 7,
+      title: "AI-Powered Quality Control in Manufacturing",
+      excerpt: "How computer vision is revolutionizing defect detection and quality assurance processes.",
+      content:
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl, eu aliquam nisl nisl sit amet nisl.",
+      date: "February 15, 2023",
+      author: "James Wilson",
+      category: "Case Studies",
+      image: "/placeholder.svg?height=300&width=600",
+      slug: "ai-powered-quality-control",
+      readTime: "8 min read",
+    },
+    {
+      id: 8,
+      title: "The Rise of Multimodal AI Models",
+      excerpt: "Exploring systems that can process and generate content across multiple formats simultaneously.",
+      content:
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl, eu aliquam nisl nisl sit amet nisl.",
+      date: "January 30, 2023",
+      author: "Dr. Lisa Chen",
+      category: "AI Research",
+      image: "/placeholder.svg?height=300&width=600",
+      slug: "rise-of-multimodal-ai",
+      readTime: "11 min read",
+    },
+    {
+      id: 9,
+      title: "AI Strategy for Small Businesses",
+      excerpt: "Practical approaches for implementing AI solutions with limited resources and budgets.",
+      content:
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl, eu aliquam nisl nisl sit amet nisl.",
+      date: "January 18, 2023",
+      author: "Michael Thompson",
+      category: "Business",
+      image: "/placeholder.svg?height=300&width=600",
+      slug: "ai-strategy-small-businesses",
+      readTime: "9 min read",
+    },
   ]
 
+  // Filter posts based on category and search term
+  const filteredPosts = blogPosts.filter((post) => {
+    const matchesCategory = activeCategory === "all" || post.category.toLowerCase() === activeCategory.toLowerCase()
+    const matchesSearch =
+      post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      post.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      post.category.toLowerCase().includes(searchTerm.toLowerCase())
+
+    return matchesCategory && matchesSearch
+  })
+
+  // Calculate pagination
+  const indexOfLastPost = currentPage * postsPerPage
+  const indexOfFirstPost = indexOfLastPost - postsPerPage
+  const currentPosts = filteredPosts.slice(indexOfFirstPost, indexOfLastPost)
+  const totalPages = Math.ceil(filteredPosts.length / postsPerPage)
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [activeCategory, searchTerm])
+
   const featuredPost = blogPosts[0]
-  const regularPosts = blogPosts.slice(1)
 
   return (
     <div className="container py-12">
@@ -120,9 +186,19 @@ export default function BlogPage() {
         <div className="flex flex-col md:flex-row gap-4 mb-12">
           <div className="relative flex-grow">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder={t("Search articles...")} className="pl-10" />
+            <Input
+              placeholder={t("Search articles...")}
+              className="pl-10"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
-          <Tabs defaultValue="all" className="w-full md:w-auto">
+          <Tabs
+            defaultValue="all"
+            value={activeCategory}
+            onValueChange={setActiveCategory}
+            className="w-full md:w-auto"
+          >
             <TabsList className="grid grid-cols-2 md:grid-cols-5 h-auto">
               {categories.map((category) => (
                 <TabsTrigger key={category.id} value={category.id} className="text-xs md:text-sm">
@@ -175,57 +251,92 @@ export default function BlogPage() {
         </div>
 
         {/* Regular Posts */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {regularPosts.map((post) => (
-            <Card key={post.id} className="overflow-hidden flex flex-col h-full">
-              <div className="relative h-48 w-full overflow-hidden">
-                <Image
-                  src={post.image || "/placeholder.svg"}
-                  alt={post.title}
-                  fill
-                  className="object-cover transition-transform duration-300 hover:scale-105"
-                />
-              </div>
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-center mb-2">
-                  <Badge variant="outline">{post.category}</Badge>
-                  <div className="text-xs text-muted-foreground">{post.readTime}</div>
+        {currentPosts.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {currentPosts.map((post) => (
+              <Card key={post.id} className="overflow-hidden flex flex-col h-full">
+                <div className="relative h-48 w-full overflow-hidden">
+                  <Image
+                    src={post.image || "/placeholder.svg"}
+                    alt={post.title}
+                    fill
+                    className="object-cover transition-transform duration-300 hover:scale-105"
+                  />
                 </div>
-                <CardTitle className="text-xl">
-                  <Link href={`/blog/${post.slug}`} className="hover:text-primary transition-colors">
-                    {post.title}
+                <CardHeader className="pb-2">
+                  <div className="flex justify-between items-center mb-2">
+                    <Badge variant="outline">{post.category}</Badge>
+                    <div className="text-xs text-muted-foreground">{post.readTime}</div>
+                  </div>
+                  <CardTitle className="text-xl">
+                    <Link href={`/blog/${post.slug}`} className="hover:text-primary transition-colors">
+                      {post.title}
+                    </Link>
+                  </CardTitle>
+                  <div className="text-xs text-muted-foreground">
+                    {post.date} · {t("By")} {post.author}
+                  </div>
+                </CardHeader>
+                <CardContent className="flex-grow">
+                  <CardDescription className="text-base">{post.excerpt}</CardDescription>
+                </CardContent>
+                <CardFooter>
+                  <Link href={`/blog/${post.slug}`} className="text-primary font-medium hover:underline">
+                    {t("Read more")}
                   </Link>
-                </CardTitle>
-                <div className="text-xs text-muted-foreground">
-                  {post.date} · {t("By")} {post.author}
-                </div>
-              </CardHeader>
-              <CardContent className="flex-grow">
-                <CardDescription className="text-base">{post.excerpt}</CardDescription>
-              </CardContent>
-              <CardFooter>
-                <Link href={`/blog/${post.slug}`} className="text-primary font-medium hover:underline">
-                  {t("Read more")}
-                </Link>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-xl text-muted-foreground">No articles found matching your criteria.</p>
+            <Button
+              variant="outline"
+              className="mt-4"
+              onClick={() => {
+                setSearchTerm("")
+                setActiveCategory("all")
+              }}
+            >
+              Reset Filters
+            </Button>
+          </div>
+        )}
 
         {/* Pagination */}
-        <div className="flex justify-center mt-12">
-          <div className="flex space-x-2">
-            <Button variant="outline" disabled>
-              {t("Previous")}
-            </Button>
-            <Button variant="outline" className="bg-primary text-primary-foreground">
-              1
-            </Button>
-            <Button variant="outline">2</Button>
-            <Button variant="outline">3</Button>
-            <Button variant="outline">{t("Next")}</Button>
+        {filteredPosts.length > postsPerPage && (
+          <div className="flex justify-center mt-12">
+            <div className="flex space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                {t("Previous")}
+              </Button>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNumber) => (
+                <Button
+                  key={pageNumber}
+                  variant="outline"
+                  className={currentPage === pageNumber ? "bg-primary text-primary-foreground" : ""}
+                  onClick={() => setCurrentPage(pageNumber)}
+                >
+                  {pageNumber}
+                </Button>
+              ))}
+
+              <Button
+                variant="outline"
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+              >
+                {t("Next")}
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   )

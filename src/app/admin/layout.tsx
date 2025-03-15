@@ -3,7 +3,19 @@
 import { useState, useEffect, type ReactNode } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { LayoutDashboard, BarChart, FileText, Briefcase, Settings, Package, Users, LogOut, Menu, X } from "lucide-react"
+import {
+  LayoutDashboard,
+  BarChart,
+  FileText,
+  Briefcase,
+  Settings,
+  Package,
+  Users,
+  LogOut,
+  Menu,
+  X,
+  ShieldAlert,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -60,6 +72,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     { name: "Services", href: "/admin/services", icon: Package },
     { name: "Portfolio", href: "/admin/portfolio", icon: Briefcase },
     { name: "Users", href: "/admin/users", icon: Users },
+    { name: "User Roles", href: "/admin/users/role", icon: ShieldAlert },
     { name: "Settings", href: "/admin/settings", icon: Settings },
   ]
 

@@ -5,8 +5,10 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, Eye, Mic, Cpu, Zap } from 'lucide-react'
+import { ArrowLeft, Eye, Mic, Cpu, Zap } from "lucide-react"
 import { useTranslation } from "@/hooks/use-translation"
+// Fix the React.use() warning for params
+import { use } from "react"
 
 interface ServicePageProps {
   params: {
@@ -16,7 +18,8 @@ interface ServicePageProps {
 
 export default function ServicePage({ params }: ServicePageProps) {
   const { t } = useTranslation()
-  const { service } = params
+  const resolvedParams = use(params)
+  const { service } = resolvedParams
 
   // Service data
   const services = {
@@ -462,3 +465,4 @@ export default function ServicePage({ params }: ServicePageProps) {
     </div>
   )
 }
+

@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Eye, Mic } from 'lucide-react'
+import { Eye, Mic } from "lucide-react"
 import { useTranslation } from "@/hooks/use-translation"
 
 export default function DemosPage() {
@@ -99,3 +99,4 @@ export default function DemosPage() {
     </div>
   )
 }
+

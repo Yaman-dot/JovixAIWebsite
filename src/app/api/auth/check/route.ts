@@ -24,6 +24,7 @@ export async function GET() {
         name: user.name,
         email: user.email,
         role: user.role,
+        profile_image: user.profile_image,
       },
     })
   } catch (error) {
