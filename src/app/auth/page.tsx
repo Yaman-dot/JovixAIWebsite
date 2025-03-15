@@ -132,7 +132,9 @@ export default function AuthPage() {
           title: t("Sign in successful"),
           description: t("Welcome back to JovixAI!"),
         })
-        router.push("/")
+
+        // Force a page reload to ensure the authentication state is updated
+        window.location.href = "/"
       } else {
         toast({
           title: t("Sign in failed"),
@@ -197,7 +199,9 @@ export default function AuthPage() {
           title: t("Account created successfully"),
           description: t("Welcome to JovixAI!"),
         })
-        router.push("/")
+
+        // Force a page reload to ensure the authentication state is updated
+        window.location.href = "/"
       } else {
         toast({
           title: t("Registration failed"),

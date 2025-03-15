@@ -4,7 +4,7 @@ import { getUserBySessionToken } from "@/lib/models/user"
 
 export async function GET() {
   try {
-    const cookieStore = cookies()
+    const cookieStore = await cookies()  // Add `await` here
     const sessionToken = cookieStore.get("session_token")?.value
 
     if (!sessionToken) {
@@ -32,4 +32,3 @@ export async function GET() {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
-

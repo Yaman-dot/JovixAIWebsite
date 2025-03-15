@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Menu, X, Moon, Sun, Globe } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useTheme } from "next-themes"
@@ -18,38 +18,61 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { User, ShieldCheck, LogOut } from "lucide-react"
-import { getCurrentUser, logoutAction } from "@/lib/actions/auth-actions"
+import { logoutAction } from "@/lib/actions/auth-actions"
+import { useToast } from "@/hooks/use-toast"
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
   const { theme, setTheme } = useTheme()
   const isMobile = useMobile()
   const { language, setLanguage, t } = useTranslation()
+  const { toast } = useToast()
 
   // Add state and functions for user authentication
   const [currentUser, setCurrentUser] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const user = await getCurrentUser()
-        setCurrentUser(user)
+        setIsLoading(true)
+        const response = await fetch("/api/auth/check")
+        const data = await response.json()
+
+        if (data.authenticated && data.user) {
+          setCurrentUser(data.user)
+        } else {
+          setCurrentUser(null)
+        }
       } catch (error) {
         console.error("Auth check error:", error)
+        setCurrentUser(null)
+      } finally {
+        setIsLoading(false)
       }
     }
 
     checkAuth()
-  }, [])
+  }, [pathname])
 
   const handleLogout = async () => {
     try {
       await logoutAction()
       setCurrentUser(null)
-      window.location.href = "/"
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out",
+      })
+      router.push("/")
     } catch (error) {
       console.error("Logout error:", error)
+      toast({
+        title: "Error",
+        description: "Failed to log out",
+        variant: "destructive",
+      })
     }
   }
 
@@ -104,16 +127,18 @@ export default function Header() {
         <div className="flex items-center gap-2">
           {/* Sign In/Profile Buttons */}
           <div className="hidden md:flex items-center gap-2">
-            {currentUser ? (
+            {isLoading ? (
+              <div className="h-9 w-24 bg-muted animate-pulse rounded-md"></div>
+            ) : currentUser ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="flex items-center gap-2">
                     <Avatar className="h-6 w-6">
                       <AvatarImage
-                        src={currentUser.profile_image || "/placeholder.svg?height=24&width=24"}
+                        src={currentUser.profile_image || "/images/default-avatar.png"}
                         alt={currentUser.name}
                       />
-                      <AvatarFallback>{currentUser.name?.charAt(0)}</AvatarFallback>
+                      <AvatarFallback>{currentUser.name?.charAt(0) || "U"}</AvatarFallback>
                     </Avatar>
                     <span>{currentUser.name}</span>
                   </Button>
@@ -151,7 +176,7 @@ export default function Header() {
                   asChild
                   className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
-                  <Link href="/admin">{t("Admin")}</Link>
+                  <Link href="/auth">{t("Sign Up")}</Link>
                 </Button>
               </>
             )}
@@ -219,7 +244,9 @@ export default function Header() {
               </Link>
             ))}
             <div className="mt-4 flex flex-col gap-3">
-              {currentUser ? (
+              {isLoading ? (
+                <div className="h-10 bg-muted animate-pulse rounded-md"></div>
+              ) : currentUser ? (
                 <>
                   <Link
                     href="/profile"
@@ -270,7 +297,7 @@ export default function Header() {
                     </Button>
                   </Link>
                   <Link
-                    href="/admin"
+                    href="/auth"
                     className="text-lg font-medium transition-colors hover:text-primary flex items-center justify-center"
                     onClick={closeMenu}
                   >
@@ -278,7 +305,7 @@ export default function Header() {
                       variant="secondary"
                       className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                     >
-                      {t("Admin Panel")}
+                      {t("Sign Up")}
                     </Button>
                   </Link>
                 </>

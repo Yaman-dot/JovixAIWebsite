@@ -30,7 +30,7 @@ export async function loginAction(formData: FormData) {
     }
 
     // Set session cookie
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     cookieStore.set({
       name: "session_token",
       value: result.session.token,
@@ -208,7 +208,7 @@ export async function githubAuthAction(code: string) {
     }
 
     // Set session cookie
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     cookieStore.set({
       name: "session_token",
       value: result.session.token,
@@ -236,7 +236,7 @@ export async function githubAuthAction(code: string) {
 
 // Logout action
 export async function logoutAction() {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const sessionToken = cookieStore.get("session_token")?.value
 
   if (sessionToken) {
@@ -260,14 +260,14 @@ export async function logoutAction() {
 
 // Get current user
 export async function getCurrentUser() {
-  const cookieStore = cookies()
-  const sessionToken = cookieStore.get("session_token")?.value
-
-  if (!sessionToken) {
-    return null
-  }
-
   try {
+    const cookieStore = await cookies()
+    const sessionToken = cookieStore.get("session_token")?.value
+
+    if (!sessionToken) {
+      return null
+    }
+
     const user = await getUserBySessionToken(sessionToken)
     return user
   } catch (error) {
