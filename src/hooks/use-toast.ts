@@ -1,9 +1,12 @@
 "use client"
 
 // Inspired by react-hot-toast library
-import type * as React from "react"
+import * as React from "react"
 
-import type { ToastActionElement, ToastProps } from "@/components/ui/toast"
+import type {
+  ToastActionElement,
+  ToastProps,
+} from "@/components/ui/toast"
 
 const TOAST_LIMIT = 1
 const TOAST_REMOVE_DELAY = 1000000
@@ -82,7 +85,9 @@ export const reducer = (state: State, action: Action): State => {
     case "UPDATE_TOAST":
       return {
         ...state,
-        toasts: state.toasts.map((t) => (t.id === action.toast.id ? { ...t, ...action.toast } : t)),
+        toasts: state.toasts.map((t) =>
+          t.id === action.toast.id ? { ...t, ...action.toast } : t
+        ),
       }
 
     case "DISMISS_TOAST": {
@@ -106,7 +111,7 @@ export const reducer = (state: State, action: Action): State => {
                 ...t,
                 open: false,
               }
-            : t,
+            : t
         ),
       }
     }
@@ -166,48 +171,24 @@ function toast({ ...props }: Toast) {
   }
 }
 
-// function useToast() {
-//   const [state, setState] = React.useState<State>(memoryState)
-
-//   React.useEffect(() => {
-//     listeners.push(setState)
-//     return () => {
-//       const index = listeners.indexOf(setState)
-//       if (index > -1) {
-//         listeners.splice(index, 1)
-//       }
-//     }
-//   }, [state])
-
-//   return {
-//     ...state,
-//     toast,
-//     dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
-//   }
-// }
-
-import { useState } from "react"
-
-type ToastProps2 = {
-  title: string
-  description?: string
-  variant?: "default" | "destructive"
-}
-
 function useToast() {
-  const [toasts, setToasts] = useState<ToastProps2[]>([])
+  const [state, setState] = React.useState<State>(memoryState)
 
-  const toast2 = (props: ToastProps2) => {
-    setToasts((prev) => [...prev, props])
+  React.useEffect(() => {
+    listeners.push(setState)
+    return () => {
+      const index = listeners.indexOf(setState)
+      if (index > -1) {
+        listeners.splice(index, 1)
+      }
+    }
+  }, [state])
 
-    // Remove toast after 5 seconds
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t !== props))
-    }, 5000)
+  return {
+    ...state,
+    toast,
+    dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
   }
-
-  return { toast: toast2, toasts }
 }
 
 export { useToast, toast }
-

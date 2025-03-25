@@ -18,12 +18,18 @@ export async function loginAction(formData: FormData) {
   const password = formData.get("password") as string
   const rememberMe = formData.get("rememberMe") === "on"
 
+  console.log("Login attempt:", email)
+
   if (!email || !password) {
     return { success: false, error: "Email and password are required" }
   }
 
   try {
     const result = await authenticateUser(email, password)
+    console.log("Authentication result:", {
+      success: result.success,
+      user: result.success ? { ...result.user, password: undefined } : null,
+    })
 
     if (!result.success) {
       return result
@@ -99,7 +105,7 @@ export async function registerAction(formData: FormData) {
     }
 
     // Set session cookie
-    const cookieStore = await cookies()
+    const cookieStore = cookies()
     cookieStore.set({
       name: "session_token",
       value: loginResult.session.token,
@@ -301,3 +307,4 @@ export async function requireAdmin() {
 
   return user
 }
+

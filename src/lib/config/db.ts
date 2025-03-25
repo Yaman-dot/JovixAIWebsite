@@ -1,4 +1,5 @@
-"use server"
+"\"use server"
+
 import mysql from "mysql2/promise"
 
 // Database connection configuration

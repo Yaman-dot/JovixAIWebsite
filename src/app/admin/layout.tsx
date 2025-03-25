@@ -21,7 +21,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
-import { logoutAction, getCurrentUser } from "@/lib/actions/auth-actions"
+import { logoutAction } from "@/lib/actions/auth-actions"
 import { useToast } from "@/hooks/use-toast"
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
@@ -33,37 +33,47 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const { toast } = useToast()
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const user = await getCurrentUser()
+    // Only check auth if we haven't loaded the user yet or if loading is true
+    if (loading) {
+      const checkAuth = async () => {
+        try {
+          console.log("Checking admin authentication...")
+          const response = await fetch("/api/auth/check")
+          const data = await response.json()
+          console.log("Auth check response:", data)
 
-        if (!user) {
+          if (!data.authenticated) {
+            console.log("Not authenticated, redirecting to login")
+            router.push("/auth")
+            return
+          }
+
+          // Check if user is admin
+          console.log("User role:", data.user.role)
+          if (data.user.role !== "admin") {
+            console.log("Not an admin, access denied")
+            toast({
+              title: "Access Denied",
+              description: "You don't have permission to access the admin area",
+              variant: "destructive",
+            })
+            router.push("/")
+            return
+          }
+
+          console.log("Admin authentication successful")
+          setCurrentUser(data.user)
+        } catch (error) {
+          console.error("Auth check error:", error)
           router.push("/auth")
-          return
+        } finally {
+          setLoading(false)
         }
-
-        // Check if user is admin
-        if (user.role !== "admin") {
-          toast({
-            title: "Access Denied",
-            description: "You don't have permission to access the admin area",
-            variant: "destructive",
-          })
-          router.push("/")
-          return
-        }
-
-        setCurrentUser(user)
-      } catch (error) {
-        console.error("Auth check error:", error)
-        router.push("/auth")
-      } finally {
-        setLoading(false)
       }
-    }
 
-    checkAuth()
-  }, [router, toast])
+      checkAuth()
+    }
+  }, [router, toast, loading, currentUser])
 
   const navItems = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },

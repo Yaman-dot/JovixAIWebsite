@@ -228,7 +228,7 @@ export default function Header() {
 
       {/* Mobile Navigation */}
       {isMenuOpen && isMobile && (
-        <div className="fixed inset-0 top-16 z-50 bg-background md:hidden">
+        <div className="fixed inset-0 top-16 z-50 bg-background/95 backdrop-blur-sm border-t md:hidden">
           <nav className="container flex flex-col gap-6 p-6">
             {navItems.map((item) => (
               <Link

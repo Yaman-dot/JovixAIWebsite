@@ -17,6 +17,8 @@ export default function BlogPage() {
   const [activeCategory, setActiveCategory] = useState("all")
   const [searchTerm, setSearchTerm] = useState("")
   const postsPerPage = 6
+  const [blogPosts, setBlogPosts] = useState([])
+  const [loading, setLoading] = useState(true)
 
   const categories = [
     { id: "all", name: "All Posts" },
@@ -26,7 +28,7 @@ export default function BlogPage() {
     { id: "case-studies", name: "Case Studies" },
   ]
 
-  const blogPosts = [
+  const hardcodedBlogPosts = [
     {
       id: 1,
       title: "Advancements in Object Detection Technology",
@@ -146,6 +148,36 @@ export default function BlogPage() {
       readTime: "9 min read",
     },
   ]
+
+  useEffect(() => {
+    loadBlogPosts()
+  }, [])
+
+  const loadBlogPosts = async () => {
+    setLoading(true)
+    try {
+      // Fetch blog posts from the server
+      const response = await fetch("/api/blog")
+      if (!response.ok) {
+        throw new Error("Failed to fetch blog posts")
+      }
+
+      const data = await response.json()
+      if (data.success) {
+        setBlogPosts(data.posts)
+      } else {
+        console.error("Error loading blog posts:", data.error)
+        // Fall back to hardcoded posts if there's an error
+        setBlogPosts(hardcodedBlogPosts)
+      }
+    } catch (error) {
+      console.error("Error loading blog posts:", error)
+      // Fall back to hardcoded posts if there's an error
+      setBlogPosts(hardcodedBlogPosts)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   // Filter posts based on category and search term
   const filteredPosts = blogPosts.filter((post) => {

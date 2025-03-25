@@ -33,7 +33,10 @@ export interface GithubUser {
 
 // Hash password using SHA-256 (in a real app, use bcrypt or Argon2)
 function hashPassword(password: string): string {
-  return crypto.createHash("sha256").update(password).digest("hex")
+  console.log("Hashing password:", password)
+  const hash = crypto.createHash("sha256").update(password).digest("hex")
+  console.log("Hashed password:", hash)
+  return hash
 }
 
 export async function getAllUsers() {
@@ -135,19 +138,30 @@ export async function deleteUser(id: number) {
 // Authentication functions
 export async function authenticateUser(email: string, password: string) {
   try {
+    console.log("Authenticating user:", email)
     // Get user with password for authentication
     const results = await query("SELECT id, name, email, password, role, profile_image FROM users WHERE email = ?", [
       email,
     ])
 
+    console.log("User query results:", results)
+
     if (!results || !Array.isArray(results) || results.length === 0) {
+      console.log("User not found")
       return { success: false, error: "User not found" }
     }
 
     const user = results[0] as any
     const hashedPassword = hashPassword(password)
 
+    console.log("Password comparison:", {
+      inputHash: hashedPassword.substring(0, 10) + "...",
+      storedHash: user.password.substring(0, 10) + "...",
+      match: user.password === hashedPassword,
+    })
+
     if (user.password !== hashedPassword) {
+      console.log("Invalid password")
       return { success: false, error: "Invalid password" }
     }
 
@@ -164,6 +178,8 @@ export async function authenticateUser(email: string, password: string) {
 
     // Return user without password and with session token
     delete user.password
+
+    console.log("Authentication successful, user role:", user.role)
 
     return {
       success: true,

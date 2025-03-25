@@ -347,7 +347,7 @@ const translations = {
     "Assign roles to control user access and permissions": "تعيين الأدوار للتحكم في وصول المستخدمين والصلاحيات",
     "Role Management": "إدارة الأدوار",
     "Assign administrative roles to users. Be careful as this grants significant permissions.":
-      "تعيين أدوار إدارية للمستخدم��ن. كن حذرًا لأن هذا يمنح صلاحيات كبيرة.",
+      "تعيين أدوار إدارية للمستخدمين. كن حذرًا لأن هذا يمنح صلاحيات كبيرة.",
     "Current Role": "الدور الحالي",
     "New Role": "الدور الجديد",
     "No Change": "لا تغيير",

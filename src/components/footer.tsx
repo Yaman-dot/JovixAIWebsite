@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Facebook, Twitter, Linkedin, Github, Mail, Phone, MapPin } from 'lucide-react'
+import { Facebook, Twitter, Linkedin, Github, Mail, Phone, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import NewsletterSignup from "@/components/newsletter-signup"
 import { useTranslation } from "@/hooks/use-translation"
@@ -16,7 +16,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           {/* Company Info */}
           <div className="space-y-4">
-            <h3 className="text-lg font-bold">{t("AI Vision")}</h3>
+            <h3 className="text-lg font-bold">{t("JovixAI")}</h3>
             <p className="text-muted-foreground">
               {t("Transforming industries with cutting-edge AI solutions for object detection and text-to-speech.")}
             </p>
@@ -91,7 +91,7 @@ export default function Footer() {
             <ul className="space-y-3">
               <li className="flex items-start space-x-3">
                 <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <span className="text-muted-foreground">info@aivision.com</span>
+                <span className="text-muted-foreground">info@jovixai.com</span>
               </li>
               <li className="flex items-start space-x-3">
                 <Phone className="h-5 w-5 text-muted-foreground mt-0.5" />
@@ -117,7 +117,7 @@ export default function Footer() {
         <div className="border-t pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-sm text-muted-foreground">
-              © {currentYear} {t("AI Vision")}. {t("All rights reserved.")}
+              © {currentYear} {t("JovixAI")}. {t("All rights reserved.")}
             </p>
             <div className="flex space-x-4 mt-4 md:mt-0">
               <Link href="/privacy" className="text-sm text-muted-foreground hover:text-primary transition-colors">
@@ -136,3 +136,4 @@ export default function Footer() {
     </footer>
   )
 }
+
