@@ -24,7 +24,7 @@ export default function HeroAnimation() {
     setCanvasDimensions()
     window.addEventListener("resize", setCanvasDimensions)
 
-    // Particle class
+    // Particle class with gravity and click interaction
     class Particle {
       x: number
       y: number
@@ -32,6 +32,7 @@ export default function HeroAnimation() {
       speedX: number
       speedY: number
       color: string
+      isClicked: boolean
 
       constructor(x: number, y: number, size: number, speedX: number, speedY: number, color: string) {
         this.x = x
@@ -40,18 +41,33 @@ export default function HeroAnimation() {
         this.speedX = speedX
         this.speedY = speedY
         this.color = color
+        this.isClicked = false
       }
 
-      update() {
+      update(particles: Particle[]) {
+        // Apply gravitational force with reduced intensity
+        particles.forEach(particle => {
+          if (particle !== this) {
+            const dx = particle.x - this.x
+            const dy = particle.y - this.y
+            const distance = Math.sqrt(dx * dx + dy * dy)
+            if (distance < 100) {
+              const force = (100 - distance) / 300  // Reduced the force by dividing by a larger number
+              this.speedX += force * (dx / distance) * 0.01  // Lower multiplier for slower speed
+              this.speedY += force * (dy / distance) * 0.01  // Lower multiplier for slower speed
+            }
+          }
+        })
+
         this.x += this.speedX
         this.y += this.speedY
 
         // Bounce off edges
         if (this.x < 0 || this.x > canvas.width) {
-          this.speedX *= -1
+          this.speedX *= -0.9  // Slightly dampen the bounce speed
         }
         if (this.y < 0 || this.y > canvas.height) {
-          this.speedY *= -1
+          this.speedY *= -0.9  // Slightly dampen the bounce speed
         }
       }
 
@@ -61,6 +77,21 @@ export default function HeroAnimation() {
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2)
         ctx.fillStyle = this.color
         ctx.fill()
+      }
+
+      // Detect click to throw the particle
+      handleClick(mouseX: number, mouseY: number) {
+        const dx = mouseX - this.x
+        const dy = mouseY - this.y
+        const distance = Math.sqrt(dx * dx + dy * dy)
+
+        if (distance < this.size) {
+          this.isClicked = true
+          const angle = Math.atan2(dy, dx)
+          const speed = 5  // Lower speed for throwing
+          this.speedX = -Math.cos(angle) * speed
+          this.speedY = -Math.sin(angle) * speed
+        }
       }
     }
 
@@ -73,8 +104,8 @@ export default function HeroAnimation() {
       const size = Math.random() * 5 + 1
       const x = Math.random() * canvas.width
       const y = Math.random() * canvas.height
-      const speedX = (Math.random() - 0.5) * 2
-      const speedY = (Math.random() - 0.5) * 2
+      const speedX = (Math.random() - 0.5) * 1  // Reduced initial speed
+      const speedY = (Math.random() - 0.5) * 1  // Reduced initial speed
       const color = colors[Math.floor(Math.random() * colors.length)]
 
       particles.push(new Particle(x, y, size, speedX, speedY, color))
@@ -107,22 +138,33 @@ export default function HeroAnimation() {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
 
       // Update and draw particles
-      for (const particle of particles) {
-        particle.update()
+      particles.forEach(particle => {
+        particle.update(particles)
         particle.draw()
-      }
+      })
 
       drawConnections()
       requestAnimationFrame(animate)
     }
 
+    // Handle click event
+    const handleClick = (e: MouseEvent) => {
+      const mouseX = e.clientX - canvas.offsetLeft
+      const mouseY = e.clientY - canvas.offsetTop
+      particles.forEach(particle => {
+        particle.handleClick(mouseX, mouseY)
+      })
+    }
+
+    canvas.addEventListener("click", handleClick)
+
     animate()
 
     return () => {
       window.removeEventListener("resize", setCanvasDimensions)
+      canvas.removeEventListener("click", handleClick)
     }
   }, [])
 
   return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" aria-hidden="true" />
 }
-

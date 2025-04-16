@@ -5,7 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, Eye, Mic, Cpu, Zap } from "lucide-react"
+import { ArrowLeft, Eye, Mic, Cpu, Zap, HelpCircle } from "lucide-react"
 import { useTranslation } from "@/hooks/use-translation"
 // Fix the React.use() warning for params
 import { use } from "react"
@@ -51,16 +51,12 @@ export default function ServicePage({ params }: ServicePageProps) {
           description:
             "Deploy models on edge devices for processing without internet connectivity or cloud dependencies.",
         },
-        {
-          title: "Integration APIs",
-          description: "Easily integrate with existing systems through our comprehensive API and SDK options.",
-        },
       ],
       useCases: [
         {
-          title: "Retail Analytics",
+          title: "MRI Brain Tumor Scans",
           description:
-            "Track customer movement patterns, analyze product interactions, and optimize store layouts based on visual data.",
+            "Automatically detect and classify brain tumors in MRI scans, assisting radiologists in diagnosis and treatment planning.",
           image: "/placeholder.svg?height=200&width=300",
         },
         {
@@ -80,28 +76,6 @@ export default function ServicePage({ params }: ServicePageProps) {
           description:
             "Monitor traffic flow, optimize public transportation, and enhance urban planning with visual intelligence.",
           image: "/placeholder.svg?height=200&width=300",
-        },
-      ],
-      faq: [
-        {
-          question: "How accurate are your object detection models?",
-          answer:
-            "Our models achieve 95-99% accuracy depending on the specific use case and environmental conditions. We continuously train and refine our models to improve performance.",
-        },
-        {
-          question: "Can your models work with existing camera systems?",
-          answer:
-            "Yes, our solutions are designed to integrate with most standard camera systems and video feeds, requiring minimal hardware changes.",
-        },
-        {
-          question: "How long does it take to train a custom model?",
-          answer:
-            "Training time varies based on complexity, but typically ranges from 2-4 weeks from data collection to deployment-ready models.",
-        },
-        {
-          question: "Do you support on-premises deployment?",
-          answer:
-            "Yes, we offer both cloud-based and on-premises deployment options to meet various security and compliance requirements.",
         },
       ],
     },
@@ -159,28 +133,6 @@ export default function ServicePage({ params }: ServicePageProps) {
           image: "/placeholder.svg?height=200&width=300",
         },
       ],
-      faq: [
-        {
-          question: "How natural do the voices sound?",
-          answer:
-            "Our latest models score over 4.5/5 in blind listening tests comparing them to human voices, making them among the most natural-sounding in the industry.",
-        },
-        {
-          question: "What languages do you support?",
-          answer:
-            "We currently support over 30 languages including English, Spanish, French, German, Chinese, Japanese, Arabic, and many more.",
-        },
-        {
-          question: "Can I create a custom voice that sounds like a specific person?",
-          answer:
-            "Yes, with proper permissions and sufficient voice samples, we can create custom voice models that mimic specific voice characteristics.",
-        },
-        {
-          question: "How do you handle technical terminology or unusual words?",
-          answer:
-            "Our models include specialized dictionaries for various fields, and we offer custom pronunciation guides for industry-specific terminology.",
-        },
-      ],
     },
     "custom-integration": {
       title: "Custom AI Integration",
@@ -233,28 +185,6 @@ export default function ServicePage({ params }: ServicePageProps) {
           title: "Customer Relationship Management",
           description: "Add intelligent customer insights and predictive analytics to existing CRM platforms.",
           image: "/placeholder.svg?height=200&width=300",
-        },
-      ],
-      faq: [
-        {
-          question: "How long does a typical integration project take?",
-          answer:
-            "Project timelines vary based on complexity, but most integrations are completed within 3-6 months from initial assessment to full deployment.",
-        },
-        {
-          question: "Will integration disrupt our current operations?",
-          answer:
-            "We use a phased implementation approach designed to minimize disruption, often running systems in parallel until the new capabilities are fully tested.",
-        },
-        {
-          question: "Do you provide training for our team?",
-          answer:
-            "Yes, comprehensive training is included in all integration projects to ensure your team can effectively use and maintain the new AI capabilities.",
-        },
-        {
-          question: "What ongoing support do you provide after integration?",
-          answer:
-            "We offer various support tiers including regular maintenance, performance monitoring, model updates, and 24/7 technical assistance.",
         },
       ],
     },
@@ -311,28 +241,6 @@ export default function ServicePage({ params }: ServicePageProps) {
           description:
             "Process video streams for security, sports analytics, or broadcast applications with frame-by-frame analysis.",
           image: "/placeholder.svg?height=200&width=300",
-        },
-      ],
-      faq: [
-        {
-          question: "What kind of latency can we expect?",
-          answer:
-            "Our systems typically achieve end-to-end processing latencies of 10-50 milliseconds depending on the complexity of the analysis required.",
-        },
-        {
-          question: "How do you handle network interruptions?",
-          answer:
-            "Our edge computing capabilities allow for continued local processing during network outages, with data synchronization once connectivity is restored.",
-        },
-        {
-          question: "What hardware requirements are needed?",
-          answer:
-            "Requirements vary by application, but we can deploy on everything from specialized GPU clusters to optimized edge devices depending on your needs.",
-        },
-        {
-          question: "Can your system scale to handle traffic spikes?",
-          answer:
-            "Yes, our distributed architecture allows for dynamic scaling to handle sudden increases in processing demand without performance degradation.",
         },
       ],
     },
@@ -425,21 +333,14 @@ export default function ServicePage({ params }: ServicePageProps) {
             </div>
           </section>
 
-          {/* FAQ Section */}
-          <section>
-            <h2 className="text-2xl md:text-3xl font-bold mb-6">{t("Frequently Asked Questions")}</h2>
-            <div className="space-y-4">
-              {serviceData.faq.map((item, index) => (
-                <Card key={index}>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">{item.question}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground">{item.answer}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+          {/* FAQ Button Section */}
+          <section className="flex justify-center">
+            <Button asChild size="lg" className="gap-2">
+              <Link href="/faq">
+                <HelpCircle className="h-5 w-5 mr-1" />
+                {t("View Frequently Asked Questions")}
+              </Link>
+            </Button>
           </section>
 
           {/* CTA Section */}
@@ -465,4 +366,3 @@ export default function ServicePage({ params }: ServicePageProps) {
     </div>
   )
 }
-

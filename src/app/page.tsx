@@ -47,7 +47,7 @@ export default function Home() {
     },
   ]
 
-  const blogPosts = [
+  /**const blogPosts = [
     {
       id: 1,
       title: "Advancements in Object Detection Technology",
@@ -75,7 +75,7 @@ export default function Home() {
       image: "/placeholder.svg?height=200&width=400",
       slug: "implementing-ai-enterprise-solutions",
     },
-  ]
+  ]**/
 
   const portfolioItems = [
     {
@@ -177,7 +177,7 @@ export default function Home() {
       </section>
 
       {/* Blog Section */}
-      <section className="py-16 md:py-24 bg-muted/50">
+      {/* <section className="py-16 md:py-24 bg-muted/50">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">{t("Latest Insights")}</h2>
@@ -195,11 +195,11 @@ export default function Home() {
               <Link href="/blog">{t("View All Articles")}</Link>
             </Button>
           </div>
-        </div>
-      </section>
+        </div>  
+      </section> */}
 
       {/* Portfolio Section */}
-      <section className="py-16 md:py-24">
+      <section className="py-16 md:py-24 bg-muted/50">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4">{t("Our Portfolio")}</h2>

@@ -94,8 +94,9 @@ export default function Header() {
     { name: t("Home"), path: "/" },
     { name: t("Services"), path: "/services" },
     { name: t("Demos"), path: "/demos" },
-    { name: t("Blog"), path: "/blog" },
+    //{ name: t("Blog"), path: "/blog" },
     { name: t("Portfolio"), path: "/portfolio" },
+    { name: t("About Us"), path: "/about-us" },
     { name: t("Contact"), path: "/contact" },
   ]
 
